@@ -33,25 +33,34 @@ impl eframe::App for TodoApp{
             });
 
             ui.separator();
+            let row_height: f32 = 24.0;
+            let total_tasks: usize = self.tasks.len();
             let mut task_to_delete: Option<usize> = None;
 
-            for (index, task) in self.tasks.iter_mut().enumerate(){
-                ui.horizontal(|ui|{
-                    ui.checkbox(&mut task.is_done, "");
+            egui::ScrollArea::vertical().show_rows(ui, row_height, total_tasks, |ui, row_range|{
 
-                    if task.is_done {
-                        ui.label(egui::RichText::new(&task.name).strikethrough());
+                for index in row_range{
+                    let task = &mut self.tasks[index];
 
-                    }
-                    else {
-                        ui.label(&task.name);
-                    }
+                    ui.horizontal(|ui|{
+                        ui.checkbox(&mut task.is_done, "");
 
-                    if ui.button("Delete").clicked(){
-                        task_to_delete = Some(index);
-                    }
-                });
-            }
+                        if task.is_done {
+                            ui.label(egui::RichText::new(&task.name).strikethrough());
+
+                        }
+                        else {
+                            ui.label(&task.name);
+                        }
+
+                        if ui.button("Delete").clicked(){
+                            task_to_delete = Some(index);
+                        }
+                    });
+                }
+
+            });
+
 
             if let Some(index) = task_to_delete {
                 self.tasks.remove(index);
