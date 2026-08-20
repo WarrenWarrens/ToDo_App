@@ -30,6 +30,11 @@ impl eframe::App for TodoApp{
                     });
                     self.new_task_input.clear();
                 }
+
+                if ui.button("Clear Completed").clicked(){
+                    self.tasks.retain(|task| !task.is_done);
+                }
+
             });
 
             ui.separator();
@@ -88,17 +93,11 @@ fn main() -> eframe::Result<()> {
         height
     });
 
-    let _options = eframe::NativeOptions {
+    let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([400.0, 500.0])
             .with_icon(icon),
         ..Default::default()
-    };
-
-    let options = eframe::NativeOptions{
-        viewport: egui::ViewportBuilder::default().with_inner_size([400.0,500.0]),
-        ..Default::default()
-
     };
 
     eframe::run_native(
