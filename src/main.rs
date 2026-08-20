@@ -64,6 +64,28 @@ impl eframe::App for TodoApp{
 
 
 fn main() -> eframe::Result<()> {
+    let icon_bytes = include_bytes!("../assets/todosprite.png");
+
+    let image = image::load_from_memory(icon_bytes)
+        .expect("Failed to load image")
+        .to_rgba8();
+
+    let (width, height) = image.dimensions();
+    let rgba_data = image.into_raw();
+
+    let icon = std::sync::Arc::new(egui::IconData {
+        rgba: rgba_data,
+        width,
+        height
+    });
+
+    let _options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([400.0, 500.0])
+            .with_icon(icon),
+        ..Default::default()
+    };
+
     let options = eframe::NativeOptions{
         viewport: egui::ViewportBuilder::default().with_inner_size([400.0,500.0]),
         ..Default::default()
