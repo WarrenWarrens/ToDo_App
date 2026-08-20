@@ -1,4 +1,16 @@
 use eframe::egui;
+use directories::ProjectDirs;
+use std::path::PathBuf;
+
+fn get_save_path() -> PathBuf {
+    if let Some(proj_dirs) = ProjectDirs::from("","","TodoAoo")
+    {
+        let dir = proj_dirs.data_dir();
+        std::fs::create_dir_all(dir).unwrap_or_default();
+        return dir.join("tasks.json");
+    }
+    PathBuf::from("tasks.json")
+}
 
 #[derive(serde::Serialize, serde::Deserialize)]
 struct Task{
@@ -28,6 +40,11 @@ impl eframe::App for TodoApp{
                 ui.horizontal(|ui| {
                     if ui.button("Yes (Save)").clicked()
                     {
+                        let save_path = get_save_path();
+                        if let Ok(json) = serde_json::to_string_pretty(&self.tasks){
+                            let _ = std::fs::write(save_path, json);
+                        }
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close)
 
                     }
                     if ui.button("No (Don't Save)").clicked(){
@@ -126,9 +143,27 @@ fn main() -> eframe::Result<()> {
         ..Default::default()
     };
 
+    let save_path = get_save_path();
+    let mut starting_tasks = Vec::new();
+
+    if let Ok(json_string) = std::fs::read_to_string(&save_path){
+        if let Ok(parsed_tasks) = serde_json::from_str(&json_string)
+        {
+            starting_tasks = parsed_tasks;
+        }
+    }
+
+    let app = TodoApp
+    {
+        tasks: starting_tasks,
+        new_task_input: String::new(),
+        show_exit_dialog: false,
+    };
+
+
     eframe::run_native(
         "To-Do App",
         options,
-        Box::new(|_cc| Box::new(TodoApp::default())),
+        Box::new(|_cc| Box::new(app)),
     )
 }
