@@ -1,6 +1,6 @@
 use eframe::egui;
 
-
+#[derive(serde::Serialize, serde::Deserialize)]
 struct Task{
     name: String,
     is_done: bool,
@@ -11,10 +11,36 @@ struct Task{
 struct TodoApp{
     tasks: Vec<Task>,
     new_task_input: String,
+    show_exit_dialog: bool,
 }
 
 impl eframe::App for TodoApp{
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame){
+
+        if ctx.input(|i| i.viewport().close_requested())
+        {
+            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+            self.show_exit_dialog = true;
+        }
+
+        if self.show_exit_dialog{
+            egui::Window::new("Save before quitting?").show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    if ui.button("Yes (Save)").clicked()
+                    {
+
+                    }
+                    if ui.button("No (Don't Save)").clicked(){
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+
+                    }
+                    if ui.button("Cancel (Return)").clicked(){
+                        self.show_exit_dialog = false;
+                    }
+
+                });
+            });
+        }
 
         egui::CentralPanel::default().show(ctx, |ui|{
             ui.heading("Rust To-Do List");
