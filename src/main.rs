@@ -24,6 +24,7 @@ struct TodoApp{
     tasks: Vec<Task>,
     new_task_input: String,
     show_exit_dialog: bool,
+    allowed_to_close: bool,
 }
 
 impl eframe::App for TodoApp{
@@ -31,27 +32,33 @@ impl eframe::App for TodoApp{
 
         if ctx.input(|i| i.viewport().close_requested())
         {
-            ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
-            self.show_exit_dialog = true;
+            if !self.allowed_to_close {
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                self.show_exit_dialog = true;
+            }
+
         }
 
         if self.show_exit_dialog{
             egui::Window::new("Save before quitting?").show(ctx, |ui| {
                 ui.horizontal(|ui| {
-                    if ui.button("Yes (Save)").clicked()
-                    {
+
+                    if ui.button("Yes (Save)").clicked() {
                         let save_path = get_save_path();
-                        if let Ok(json) = serde_json::to_string_pretty(&self.tasks){
+                        if let Ok(json) = serde_json::to_string_pretty(&self.tasks) {
                             let _ = std::fs::write(save_path, json);
                         }
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close)
 
-                    }
-                    if ui.button("No (Don't Save)").clicked(){
+                        self.allowed_to_close = true;
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-
                     }
-                    if ui.button("Cancel (Return)").clicked(){
+
+                    if ui.button("No (Don't Save)").clicked() {
+                        self.allowed_to_close = true;
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    }
+
+                    if ui.button("Cancel (Return)").clicked() {
                         self.show_exit_dialog = false;
                     }
 
@@ -158,6 +165,7 @@ fn main() -> eframe::Result<()> {
         tasks: starting_tasks,
         new_task_input: String::new(),
         show_exit_dialog: false,
+        allowed_to_close: false,
     };
 
 
