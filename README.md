@@ -11,7 +11,7 @@
 
 ### 1.) Clone and build
 ```
-git clone <your-repo-url>
+git clone https://github.com/WarrenWarrens/ToDo_App.git
 cd todo_app
 cargo build --release
 ``` 
